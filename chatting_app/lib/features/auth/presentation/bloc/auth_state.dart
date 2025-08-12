@@ -35,3 +35,12 @@ class ErrorState extends AuthState {
   @override
   List<Object> get props => [message];
 }
+
+class GetUsersState extends AuthState{
+  final List<User> users;
+
+  const GetUsersState(this.users);
+  @override
+  List<Object> get props => [users];
+}
+

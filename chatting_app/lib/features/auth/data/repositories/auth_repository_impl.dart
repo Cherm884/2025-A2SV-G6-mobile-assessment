@@ -80,4 +80,21 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(message: 'Unexpected error on logout'));
     }
   }
-}
+  
+  @override
+  Future<Either<Failure, List<User>>> getUsers() async {
+    if (await networkInfo.isConnected) {
+      try {
+        final user = await remoteDataSource.getUsers();
+        return Right(user);
+      
+      } on ServerException catch (e) {
+        return Left(ServerFailure(message: e.message));
+      }
+    } else {
+      return Left(NetworkFailure(message: 'No Internet connection'));
+    }
+  }
+  }
+  
+

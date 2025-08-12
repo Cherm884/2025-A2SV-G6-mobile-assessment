@@ -114,7 +114,7 @@ class _SigninPageState extends State<SigninPage> {
                 },
                 builder: (context, state) {
                   if (state is LoadingState) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator());
                   } else if (state is ErrorState) {
                     return Center(child: Text(state.message));
                   }

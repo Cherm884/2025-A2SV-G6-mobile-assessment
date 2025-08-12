@@ -12,6 +12,7 @@ abstract class UserRemoteDataSource {
   Future<User> login(String email, String password);
   Future<void> logout();
   Future<User> getMe();
+  Future<List<User>> getUsers();
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
@@ -31,7 +32,6 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<User> getMe() async {
     final token = await localDataSource.getAccessToken(storageKey);
-
     if (token == null || token.isEmpty) {
       throw CacheException(message: 'No token found in local storage');
     }
@@ -43,12 +43,12 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         'Authorization': 'Bearer $token',
       },
     );
-    debugPrint(response.body);
+    
     if (response.statusCode == 200) {
       final jsonMap = jsonDecode(response.body);
       final data = jsonMap['data'];
       final user = User(
-        id: data['id'],
+        id: data['_id'],
         name: data['name'],
         email: data['email'],
       );
@@ -120,6 +120,39 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
       throw AuthException(message: error['message'] ?? 'Authentication failed');
     } else {
       throw ServerException(message: 'Server error occurred');
+    }
+  }
+
+  @override
+  Future<List<User>> getUsers() async {
+    final token = await localDataSource.getAccessToken(storageKey);
+    if (token == null || token.isEmpty) {
+      throw CacheException(message: 'No token found in local storage');
+    }
+
+    final response = await client.get(
+      Uri.parse('$baseUrl/users'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    
+    if (response.statusCode == 200) {
+      final jsonMap = jsonDecode(response.body);
+
+      final List<dynamic> list = jsonMap['data'];
+
+      return list.map((e) => UserModel.fromJson(e)).toList();
+
+    } else if (response.statusCode == 401) {
+      throw AuthException(message: 'Unauthorized - token expired or invalid');
+    } else {
+      throw ServerException(
+        message:
+            'Failed to fetch user data. Status code: ${response.statusCode}',
+      );
     }
   }
 }

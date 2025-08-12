@@ -1,4 +1,3 @@
-
 abstract class AuthEvent {}
 
 class LoginEvent extends AuthEvent {
@@ -15,8 +14,11 @@ class SignUpEvent extends AuthEvent {
 
   SignUpEvent(this.name, this.email, this.password);
 }
-class LogOutEvent extends AuthEvent{}
 
-class GetMeEvent extends AuthEvent{}
+class LogOutEvent extends AuthEvent {}
 
+class GetMeEvent extends AuthEvent {}
 
+class GetUsersEvent extends AuthEvent {
+
+}

@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:chatting_app/core/error/exceptions.dart';
 import 'package:chatting_app/features/auth/domain/entity/user.dart';
 import 'package:chatting_app/features/auth/domain/usecase/get_me_usecase.dart';
+import 'package:chatting_app/features/auth/domain/usecase/get_users_usecase.dart';
 import 'package:chatting_app/features/auth/domain/usecase/log_out_usecase.dart';
 import 'package:chatting_app/features/auth/domain/usecase/login_usecase.dart';
 import 'package:chatting_app/features/auth/domain/usecase/sign_up_usecase.dart';
@@ -17,17 +18,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUsecase loginUsecase;
   final SignUpUsecase signUpUsecase;
   final GetMeUsecase getMeUsecase;
-
+  final GetUsersUsecase getUsersUsecase;
   AuthBloc({
     required this.logOutUsecase,
     required this.loginUsecase,
     required this.signUpUsecase,
     required this.getMeUsecase,
+    required this.getUsersUsecase,
   }) : super(InitialState()) {
     on<LoginEvent>(_onLoginEvent);
     on<SignUpEvent>(_onSignUpEvent);
     on<LogOutEvent>(_onLogOutEvent);
     on<GetMeEvent>(_onGetMeEvent);
+    on<GetUsersEvent>(_onGetUsersEvent);
   }
 
   void _onLoginEvent(LoginEvent event, Emitter<AuthState> emit) async {
@@ -98,4 +101,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(ErrorState(message: 'Unexpected error: $e'));
     }
   }
+
+  void _onGetUsersEvent(GetUsersEvent event, Emitter<AuthState> emit) async {
+    emit(LoadingState());
+    try {
+      final result = await getUsersUsecase();
+      result.fold(
+        (failure) => emit(ErrorState(message: failure.message)),
+        (success) => emit(GetUsersState(success)),
+      );
+    } on AuthException catch (_) {
+      emit(UnAuthenticated());
+    } catch (e) {
+      emit(ErrorState(message: 'Unexpected error: $e'));
+    }
+  }
+
 }
